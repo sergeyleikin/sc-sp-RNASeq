@@ -37,3 +37,4 @@ IterVar() calculates iterative ICC for multisample analysis.
 
 WT.MultiSample() performs weighted t-test analysis of DGE using SampleMatrix() output.
  
+testing RStudio clone
