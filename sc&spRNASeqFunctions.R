@@ -73,8 +73,9 @@ Chi2Test <- function(object,features=NULL,ident.1=NULL,ident.2=NULL,fc.thr=1,min
   TC.1 <- sum(AC.1)                                                                                                  # total counts /sample
   TC.2 <- sum(AC.2)
   rowi<-0
+  print("Conducting Chi2 testing:")
+  pb <- txtProgressBar(min = 0, max = length(GL), initial = 0, style = 3)                                             # initialize progress bar
   for (rownum in c(1:length(GL))) {                                                                                  # main loop, gene by gene
-    print(paste("Chi2 test: gene",rownum,"of",length(GL)))                                                           # progress report
     if ((AC.1[GL[rownum]] >= min.count | AC.2[GL[rownum]] >= min.count)&                                             # checking for min.count and min.pct
         ((sum(Ci.1[GL[rownum],]!=0)/Nc.1>min.pct)|(sum(Ci.2[GL[rownum],]!=0)/Nc.2>min.pct))){
       ContTable <- matrix(c(TC.1 - AC.1[GL[rownum]], TC.2 - AC.2[GL[rownum]],                                        # count table for chi2 test
@@ -94,7 +95,9 @@ Chi2Test <- function(object,features=NULL,ident.1=NULL,ident.2=NULL,fc.thr=1,min
         }
       }
     }
+    setTxtProgressBar(pb, rownum)                                                                                    # progress bar update
   }
+  close(pb)                                                                                                          # close progress bar
   return(output)
 }
 #Weighted t-test with iterative weight calculation
@@ -121,6 +124,8 @@ IterWghtTtest <- function(object,features=NULL,ident.1=NULL,ident.2=NULL,fc.thr=
   Xi.2 <- Ci.2
   for (i in c(1:nrow(Ci.2))) {Xi.2[i,]=Ci.2[i,]/Ni.2}                                      
   rowi<-0                                                                                                # output row counter
+  print("Conducting t-test:")
+  pb <- txtProgressBar(min = 0, max = length(GeneList), initial = 0, style = 3)                          # initialize progress bar
   for (rownum in c(1:length(GeneList))) {                                                                # Main test loop
     AC.1 <- sum(Ci.1[GeneList[rownum],])                                                                 # ident.1 aggregated counts
     AC.2 <- sum(Ci.2[GeneList[rownum],])                                                                 # ident.2 aggregated counts
@@ -130,7 +135,6 @@ IterWghtTtest <- function(object,features=NULL,ident.1=NULL,ident.2=NULL,fc.thr=
         ((sum(Xi1!=0)/Nc.1>min.pct)|(sum(Xi2!=0)/Nc.2>min.pct))){                                        # checking for minumum expression
       wi.1<-ICCWeight(h=Ci.1[GeneList[rownum],],n=Ni.1,icc=icc)                                          # ident.1 weights
       wi.2<-ICCWeight(h=Ci.2[GeneList[rownum],],n=Ni.2,icc=icc)                                          # ident.2 weights
-      print(paste("Weighted t-test: gene",rownum,"of",length(GeneList)))                                 # progress report
       fc <- sum(Xi1*wi.1)/sum(Xi2*wi.2)                                                                  # fold change
       if (!is.na(fc)){                                                                                   # removing 0/0 division
         if ((fc >= fc.thr | fc <= 1/fc.thr)&                                                             # checking FC threshold
@@ -148,7 +152,9 @@ IterWghtTtest <- function(object,features=NULL,ident.1=NULL,ident.2=NULL,fc.thr=
         } 
       }
     }
+    setTxtProgressBar(pb, rownum)                                                                        # progress bar update
   }
+  close(pb)                                                                                              # close progress bar
   return(output)
 }
 alt.wttest <- function(x1, x2, w1, w2) {
@@ -282,12 +288,14 @@ CntAv<-function(object,features=NULL,icc="i"){
   Sstats<-matrix(nrow=3,ncol=Ns)
   colnames(Sstats)<-Samples
   rownames(Sstats)<-c("N.cells","N.counts","Counts/cell")
+  Ng<-length(GeneList)                                                                   # number of genes
+  print("Averaging counts and calculating variance:")
+  pb <- txtProgressBar(min = 0, max = Ns * Ng, initial = 0, style = 3)                   # initialize progress bar
   for (j in c(1:Ns)){                                                                    # main loop for calculating weighted average and variance sample by sample
     sample=Samples[j]
     OBJ<-subset(object, idents=sample)                                                   # sample subsetting
     Ci<-as.matrix(OBJ[["RNA"]]$counts)                                                   # count matrix
     Ni<-colSums(Ci)                                                                      # total counts vector (Ni)
-    Ng<-length(GeneList)                                                                 # number of genes    
     Nc<-ncol(Ci)                                                                         # number of cells
     Sstats["N.cells",j]<-Nc
     Sstats["N.counts",j]<-sum(Ni)
@@ -301,12 +309,13 @@ CntAv<-function(object,features=NULL,icc="i"){
       AV[i]<-sum(x*w)                                                                    # weighted average gene count (% UMI)
       VAR[i]<-if(AV[i]!=0){sum(w^2*(x-AV[i])^2)/(1-sum(w^2))} else{1/(sum(Ni)^2)}        # variance of the weighted average or 1/sum(Ni)^2 when all x=0
       PCT[i]<-sum(Ci[GeneList[i],]!=0)/Nc                                                # fraction of cells expressing the gene
-      print(paste("Variance calculation: sample", j,"of",Ns,"; gene",i,"of",Ng))         # progress report
+      setTxtProgressBar(pb, i + j * Ng)                                                  # progress bar update
     }
     AVdat<-cbind(AV,VAR,PCT)                                                             # output matrix assembly
     rownames(AVdat)<-GeneList
     object@misc$AV.data[[sample]]<-as.data.frame(AVdat)                                  # writing output matrix into AV.data list within misc slot
   }
+  close(pb)                                                                              # close progress bar
   object@misc$AV.data[["Sstats"]]<-as.data.frame(Sstats)
   return(object)
 }
@@ -331,16 +340,21 @@ SampleMatrix<-function(object,samples.1=NULL,samples.2=NULL){
   rownames(AV.2)=rownames(AV.1)
   VAR.2<-AV.2
   PCT.2<-AV.2
+  print("Generating sample matrix:")
+  pb <- txtProgressBar(min = 0, max = N.1 + N.2, initial = 0, style = 3)                 # initialize progress bar
   for (i in c(1:N.1)) {                                                                  # reading object@misc$AV.data created by CntAv()
     AV.1[,i]<-object@misc$AV.data[[samples.1[i]]]$AV                                     # into sample matrices for groups 1 and 2
     VAR.1[,i]<-object@misc$AV.data[[samples.1[i]]]$VAR
     PCT.1[,i]<-object@misc$AV.data[[samples.1[i]]]$PCT
+    setTxtProgressBar(pb, i)                                                             # progress bar update
   }
   for (i in c(1:N.2)) {
     AV.2[,i]<-object@misc$AV.data[[samples.2[i]]]$AV
     VAR.2[,i]<-object@misc$AV.data[[samples.2[i]]]$VAR
     PCT.2[,i]<-object@misc$AV.data[[samples.2[i]]]$PCT
+    setTxtProgressBar(pb, i + N.1)                                                       # progress bar update
   }
+  close(pb)                                                                              # close progress bar
   Sstats<-object@misc$AV.data[["Sstats"]]
   samples.matrix<-list(AV.1,VAR.1,AV.2,VAR.2,PCT.1,PCT.2,Sstats=Sstats)                                # assembling a single list of sample matrices for
   return(samples.matrix)                                                                 # for subsequent analysis
@@ -397,6 +411,8 @@ WT.MultiSample <- function(sample.matrix,features=NULL,t.test=FALSE ,min.pct=0.0
   output<-data.frame(p.value=numeric(),log2FC=numeric(),Av1=numeric(),Sd1=numeric(),C1=numeric(),Av2=numeric(),Sd2=numeric(),C2=numeric())
   colnames(output)<-c("log2FC","p.value","Wtd.%UMI.1","Sd.%UMI.1","Av.min.pct.1","Wtd.%UMI.2","Sd.%UMI.2","Av.min.pct.2")
   rowi<-0                                                                            # output row counter
+  print("Conducting t-test:")
+  pb <- txtProgressBar(min = 0, max = length(GeneList), initial = 0, style = 3)      # initialize progress bar
   for (rownum in c(1:length(GeneList))) {                                            # gene by gene DGE calculation loop
     Xi1<-data1[GeneList[rownum],]                                                    # data vectors for groups 1 and 2  
     Xi2<-data2[GeneList[rownum],]
@@ -406,8 +422,7 @@ WT.MultiSample <- function(sample.matrix,features=NULL,t.test=FALSE ,min.pct=0.0
     PCTi2<-pct2[GeneList[rownum],]
     N1<-length(Xi1)                                                                  # number of samples in group 1 included in the analysis
     N2<-length(Xi2)                                                                  # number of samples in group 2 included in the analysis
-    if (N1 >= 3 & N2 >= 3 & (mean(PCTi1)>=min.pct|mean(PCTi2)>=min.pct)){            # selecting genes meeting minimum sample and expression requirements 
-      print(paste("DGE analysis: gene",rownum,"of",length(GeneList)))                # calculation progress report
+    if (N1 >= 3 & N2 >= 3 & (mean(PCTi1)>=min.pct|mean(PCTi2)>=min.pct)){            # selecting genes meeting minimum sample and expression requirements
       wi.1<-if(t.test==TRUE) {replicate(N1,1/N1)} else {IterVar(Xi1,VARi1)}          # calculating weights for groups 1 and 2
       wi.2<-if(t.test==TRUE) {replicate(N2,1/N2)} else {IterVar(Xi2,VARi2)} 
       Xi1av<-sum(Xi1*wi.1)                                                           # weighted average expression for groups 1 and 2
@@ -434,7 +449,9 @@ WT.MultiSample <- function(sample.matrix,features=NULL,t.test=FALSE ,min.pct=0.0
         } 
       }
     }
+    setTxtProgressBar(pb, rownum)                                                    # progress bar update
   }
+  setTxtProgressBar(pb, rownum)                                                    # progress bar update
   list(DGE=output,Sstats=Sstats)
 }
 #
