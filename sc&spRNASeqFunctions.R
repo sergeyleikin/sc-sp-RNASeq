@@ -449,9 +449,9 @@ WT.MultiSample <- function(sample.matrix,features=NULL,t.test=FALSE ,min.pct=0.0
         } 
       }
     }
-    setTxtProgressBar(pb, rownum)                                                    # progress bar update
+    setTxtProgressBar(pb, rownum)                                                     # progress bar update
   }
-  setTxtProgressBar(pb, rownum)                                                    # progress bar update
+  close(pb)                                                                           # close progress bar
   list(DGE=output,Sstats=Sstats)
 }
 #
