@@ -1,6 +1,6 @@
 **Supplemental R code and data**
 
-Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression analysis in single cell and spatial RNASeq without model assumptions. (manuscript under review, preprint available at https://www.biorxiv.org/cgi/content/short/2025.10.20.683496v1).
+Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression analysis in single cell and spatial RNASeq without model assumptions. (manuscript under review, preprint available at https://www.biorxiv.org/cgi/content/short/2025.10.20.683496v2).
 
 Folder content:
 
