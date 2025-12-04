@@ -18,6 +18,7 @@ Folder content:
 
 ####################################################
 
+
 **WARNING: Any statistical analysis is meaningless without sufficient number of data points**
 Before reporting DGE for a gene, it is important to check the number of cells and number of samples expressing the gene. Some minimum expression requirements are built into our functions, but they can be bypassed when nondefault parameter values are used. Moreover, we cannot foresee everything. There may be cases requiring more stringent minimum expression criteria. 
 ####################################################
