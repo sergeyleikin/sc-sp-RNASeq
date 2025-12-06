@@ -19,10 +19,12 @@ Folder content:
 ####################################################
 
 
-**WARNING: Any statistical analysis is meaningless without sufficient number of data points.**
+**WARNING: Accurate statistical analysis requires sufficient number of data points.**
 
-Before reporting DGE for a gene, it is important to check the number of cells and number of samples expressing the gene. Some minimum expression requirements are built into our functions, but they can be bypassed when nondefault parameter values are used. Moreover, we cannot foresee everything. There may be cases requiring more stringent minimum expression criteria. 
+Before reporting DGE for a gene, it is important to check the number of cells and number of samples expressing the gene. Some minimum expression requirements are built into our functions, but they can be bypassed when nondefault parameter values are used. Moreover, we cannot foresee everything. There may be cases requiring more stringent minimum expression criteria. Please see "Quality control considerations" sections for DGE.2Samples() and DGE.Multisample() functions at the beginning of the source code to ensure proper use of quality control parameters and more accurate data analysis. Unusual branches of volcano plots may indicate poor sample quality (dead/dying cells, RNA contamination, etc.) or insufficiently stringent quality control of data analysis. Normal volcano plot appearance, however, does not indicate good quality control. 
 
+**Version 2 source code: sc&spRNASeqFunction-v2**
+Newly added quality control parameters min.cells and sum.w2 significantly improve accuracy of data analysis for (and filtering of) low expression genes. We highly recommend switching to this version and reading the "Quality control considerations" sections mentioned above. 
 
 ####################################################
 
@@ -87,7 +89,7 @@ Multi-sample analysis is most reliable and beneficial when evaluating DGE betwee
 
 The functions described above still work when the sample.1 and sample.2 lists contain repeated identities, as long as each list includes 3 or more identities (even if all identities are the same). It is important to note that repeating identities may be useful for some purposes (e.g., troubleshooting), yet repeated identities may produce nonsense results.
 
-NaN p-values in the output indicate zero degrees of freedom in the weighted t-test, which happens when the variance of the corresponding gene expression in each of the two sample groups is zero (see standard deviations in the results$DGE table).  Common causes are zero counts of the gene in both groups (prevented by setting min.pct parameter > 0) and duplicated datasets that have different identities in the Seurat object.
+NaN p-values in the output indicate zero degrees of freedom in the weighted t-test, which happens when the variance of the corresponding gene expression in each of the two sample groups is zero (see standard deviations in the results$DGE table).  Common causes are zero counts of the gene in both groups (prevented by setting min.pct > 0 and/or min.count > 0) and duplicated datasets that have different identities in the Seurat object.
 
 ####################################################
 
