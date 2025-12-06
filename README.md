@@ -23,7 +23,7 @@ Folder content:
 
 Before reporting DGE for a gene, it is important to check the number of cells and number of samples expressing the gene. Some minimum expression requirements are built into our functions, but they can be bypassed when nondefault parameter values are used. Moreover, we cannot foresee everything. There may be cases requiring more stringent minimum expression criteria. Please see "Quality control considerations" sections for DGE.2Samples() and DGE.Multisample() functions at the beginning of the source code to ensure proper use of quality control parameters and more accurate data analysis. Unusual branches of volcano plots may indicate poor sample quality (dead/dying cells, RNA contamination, etc.) or insufficiently stringent quality control of data analysis. Normal volcano plot appearance, however, does not indicate good quality control. 
 
-**Version 2 source code: sc&spRNASeqFunction-v2**
+**Version 2 source code: sc&spRNASeqFunction_v2.R**
 
 Newly added quality control parameters min.cells and sum.w2 significantly improve accuracy of data analysis for (and filtering of) low expression genes. We highly recommend switching to this version and reading the "Quality control considerations" sections mentioned above. 
 
