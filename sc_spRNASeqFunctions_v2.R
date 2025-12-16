@@ -671,16 +671,17 @@ WT.MultiSample <- function(sample.matrix,features=NULL,t.test=FALSE ,min.pct=0.0
 #
 #Simplified wrapper function for one-step analysis
 DGE.MultiSample<-function(object,samples.1=NULL,samples.2=NULL,features=NULL,t.test=FALSE, min.pct=0.03,fc.thr=1,max.pval=1,
-                          icc="i",df.correction=FALSE,sum.w2=0.4,min.cells=10) {
+                          icc="i",df.correction=FALSE,sum.w2=0.4,min.cells=10,min.count=10) {
   if(is.null(samples.1)|is.null(samples.2)) {stop("Define sample name vectors using samples.1= and samples.2=")}
   N.1=length(samples.1)                                                              # number of samples in each group
   N.2=length(samples.2)
   if(N.1<3|N.2<3) {stop("At least 3 samples per group are required")}                # early check for sample numbers
   object.m<-CntAv(object,features,icc=icc)                                                   # Count averaging within each sample
   SM<-SampleMatrix(object.m,samples.1,samples.2)                                     # Assembly of sample matrices
-  output<-WT.MultiSample(SM,features,t.test,min.pct,fc.thr,max.pval,df.correction,sum.w2,min.cells)                        # Analysis of sample matrices
+  output<-WT.MultiSample(SM,features,t.test,min.pct,fc.thr,max.pval,df.correction,sum.w2,min.cells,min.count)       # Analysis of sample matrices
   param<-as.character(c(t.test,min.pct,fc.thr,max.pval,icc,df.correction))
   names(param)<-c("t.test","min.pct","fc.thr","max.pval","icc","df.correction")
   list(DGE=output$DGE,Sstats=output$Sstats,parameters=param)
 }
 ###########################################
+
