@@ -4,9 +4,9 @@ Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression a
 
 ####################################################
 
-**IMPORTANT: Rigorous statistical analysis requires good understanding of the analysis method and its limitations.**
+**IMPORTANT: Rigorous statistical analysis requires at least some understanding of the method and its limitations.**
 
-While our method is wrapped into just a few simple functions, please go through **Tutorial.R** to understand how to use this method appropriately. The **Tutorial.R** is and will be a work in progress. We intend to update it whenever we encounter new nontrivial data anlysis issues and based on the feedback from the users of our method. Please send your feedback to leikins@mail.nih.gov. 
+While our method is simple and wrapped into just a few functions, please go through **Tutorial.R** to understand how to use this method appropriately. The **Tutorial.R** starts from very simple introduction and tips for basic users and contains optional sections, comments, and tips for advanced users that have more knowledge in math, physics, and statistics. It has been written by Sergey Leikin, and it is and will be a work in progress. Sergey intends to update it for at least a year or two, whenever he encounters new nontrivial data anlysis issues and based on the feedback from the users of our method. Please send your feedback to leikins@mail.nih.gov. 
 
 ####################################################
 
