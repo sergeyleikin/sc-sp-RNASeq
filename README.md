@@ -2,7 +2,15 @@
 
 Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression analysis in single cell and spatial RNASeq without model assumptions. (manuscript under review, preprint available at https://www.biorxiv.org/cgi/content/short/2025.10.20.683496v3).
 
-Folder content:
+####################################################
+
+**IMPORTANT: Rigorous statistical analysis requires good understanding of the analysis method and its limitations.**
+
+While our method is wrapped into just a few simple functions, please go through **Tutorial.R** to understand how to use this method appropriately. The **Tutorial.R** is and will be a work in progress. We intend to update it whenever we encounter new nontrivial data anlysis issues and based on the feedback from the users of our method. Please send your feedback to leikins@mail.nih.gov. 
+
+####################################################
+
+**FOLDER CONTENT**
 
 **sc&spRNASeqFunctions_v2.R**  - R source code for Seurat-compatible differential gene expression (DGE) analysis (see detailed description below).
 
@@ -17,6 +25,8 @@ Folder content:
 **VisiumHD_functions.R** - R source code for reading and cropping VisiumHD (10X Genomics) data (enables replacing Visium CytAssist images within Seurat objects to pre-aligned high resolution microscopy images followed by cropping of both data and images to reduce Seurat object size). Requires Seurat v. 5.1.0 - 5.3.1, not compatible with Seurat v. 5.4.0 and later versions due to Seurat's change in coordinate system.
 
 **VisiumHD_functions_Seurat5.4+.R** - R source code for reading and cropping VisiumHD (10X Genomics) data similar to VisiumHD_functions.R but designed for Seurat v. 5.4.0 and later versions. Not compatible with earlier Seurat versions due to Seurat's change in coordinate system.
+
+**Tutorial.R** - Annotated R code providing a tutorial to differential gene expression analysis based on our method, which describes proper use of the analysis functions provided at this site, limitations of these functions, data and analysis quality control, various workarounds when the data quality is borderline (too few cells or too few counts for highly reliable statistical analysis), and proper approaches to multiple comparison corrections (false discovery rate meaning and calculation). We strongly encourage all users to go through the tutorial before implementing our method, to ensure rigorous statistical analysis.  
 
 ####################################################
 
