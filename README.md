@@ -4,6 +4,14 @@ Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression a
 
 ####################################################
 
+**UPDATES AND NEWS**
+
+3/2/2026
+Updated sc&spRNASeqFunctions_v2.R to sc&spRNASeqFunctions_v2b.R, to prevent errors and provide warning when gene(s) defined by features= is missing in the original dataset.
+Created sc&spRNASeqFunctions_v3.R that utilizes less RAM by preventing sparse -> dense matrix conversion. However, these functions perform significantly slower due to multiple sparse -> dense vector conversions within calculation loops. If you do not have sufficient RAM (32+ GByte RAM commitment to the R session is recommended), I am happy to provide the slower yet less memory intestive sc&spRNASeqFunctions_v3.R upon request (leikins@mail.nih.gov).  
+
+####################################################
+
 **TUTORIAL: Rigorous statistical analysis requires at least some understanding of the method and its limitations.**
 
 While our method is simple and wrapped into just a few functions, please go through **Tutorial.R** to understand how to use this method appropriately. The **Tutorial.R** starts from very simple introduction and tips for basic users. It ends with optional sections, comments, and tips for advanced users that have more knowledge in math, physics, and statistics. It has been written by Sergey Leikin, and it is and will be a work in progress. Sergey intends to update it for at least a year or two, whenever he encounters new nontrivial data anlysis issues and based on the feedback from users. Please send your feedback to leikins@mail.nih.gov. 
