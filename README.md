@@ -6,9 +6,9 @@ Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression a
 
 **UPDATES AND NEWS**
 
-3/2/2026
+**3/2/2026.**
 Updated sc&spRNASeqFunctions_v2.R to sc&spRNASeqFunctions_v2b.R, to prevent errors and provide warning when gene(s) defined by features= is missing in the original dataset.
-Created sc&spRNASeqFunctions_v3.R that utilizes less RAM by preventing sparse -> dense matrix conversion. However, these functions perform significantly slower due to multiple sparse -> dense vector conversions within calculation loops. If you do not have sufficient RAM (32+ GByte RAM commitment to the R session is recommended), I am happy to provide the slower yet less memory intestive sc&spRNASeqFunctions_v3.R upon request (leikins@mail.nih.gov).  
+Created sc&spRNASeqFunctions_v3.R (not posted) that utilizes less RAM by preventing sparse -> dense matrix conversion. However, these functions perform significantly slower due to multiple sparse -> dense vector conversions within calculation loops. If you do not have sufficient RAM (32+ GByte RAM commitment to the R session is recommended), I am happy to provide the slower yet less memory intestive sc&spRNASeqFunctions_v3.R upon request (leikins@mail.nih.gov).  
 
 ####################################################
 
