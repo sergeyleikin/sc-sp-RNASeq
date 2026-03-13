@@ -6,21 +6,22 @@ Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression a
 
 **UPDATES AND NEWS**
 
-**3/2/2026.**
-Updated sc&spRNASeqFunctions_v2.R to sc&spRNASeqFunctions_v2b.R, to prevent errors and provide warning when gene(s) defined by features= is missing in the original dataset.
-Created sc&spRNASeqFunctions_v3.R (not posted) that utilizes less RAM by preventing sparse -> dense matrix conversion. However, these functions perform significantly slower due to multiple sparse -> dense vector conversions within calculation loops. If you do not have sufficient RAM (32+ GByte RAM commitment to the R session is recommended), I am happy to provide the slower yet less memory intestive sc&spRNASeqFunctions_v3.R upon request (leikins@mail.nih.gov).  
+**3/13/2026.**
+Updated sc&spRNASeqFunctions_v2b.R to sc&spRNASeqFunctions_v2i.R, to reduce memory utilization and increase the speed of DGE calculations. Added a QuickGuide.rmd for these functions in R markdown format and the corresponting QuickGuide.html. Removed the corresponding information from this ReadMe description. 
 
 ####################################################
 
 **TUTORIAL: Rigorous statistical analysis requires at least some understanding of the method and its limitations.**
 
-While our method is simple and wrapped into just a few functions, please go through **Tutorial.R** to understand how to use this method appropriately. The **Tutorial.R** starts from very simple introduction and tips for basic users. It ends with optional sections, comments, and tips for advanced users that have more knowledge in math, physics, and statistics. It has been written by Sergey Leikin, and it is and will be a work in progress. Sergey intends to update it for at least a year or two, whenever he encounters new nontrivial data anlysis issues and based on the feedback from users. Please send your feedback to leikins@mail.nih.gov. 
+While our method is simple and the QuickGuide should be sufficient to get started, please go through **Tutorial.R** to better understand how to use this method appropriately. The **Tutorial.R** starts from very simple introduction and tips for basic users. It ends with optional sections, comments, and tips for advanced users that have more knowledge in math, physics, and statistics. It has been written by Sergey Leikin, and it is and will be a work in progress. Sergey intends to update it for at least a year or two, whenever he encounters new nontrivial data anlysis issues and based on the feedback from users. Please send your feedback to leikins@mail.nih.gov. 
 
 ####################################################
 
 **FOLDER CONTENT**
 
-**sc&spRNASeqFunctions_v2.R**  - R source code for Seurat-compatible differential gene expression (DGE) analysis (see detailed description below).
+**sc&spRNASeqFunctions_v2i.R**  - R source code for Seurat-compatible differential gene expression (DGE) analysis.
+
+**QuickGuide.Rmd and .html** - quick guide to the DGE analysis functions provided within sc&spRNASeqFunctions_v2i.R (available after 12 pm EDT on 3/13/2026).  
 
 **CodeForScSpRNASeqPaper.R**  - R code used to generate results in the main text of the paper (Figs. 1-6, requires Neuron.QC.rds and E18tib.PCN.rds data files).
 
@@ -42,90 +43,3 @@ While our method is simple and wrapped into just a few functions, please go thro
 **WARNING: Accurate statistical analysis requires sufficient number of data points.**
 
 Before reporting DGE for a gene, it is important to check the number of transcript counts as well as the number of cells and samples expressing the gene. Some minimum expression requirements are built into our functions, but they can be bypassed when nondefault parameter values are used. Moreover, we cannot foresee everything. There may be cases requiring more stringent minimum expression criteria. Please see "Quality control considerations" sections for DGE.2Samples() and DGE.Multisample() functions at the beginning of the source code to ensure proper use of quality control parameters and more accurate data analysis. Unusual branches of volcano plots may indicate poor sample quality (dead/dying cells, RNA contamination, etc.) or insufficiently stringent quality control of data analysis. Normal volcano plot appearance, however, does not indicate good quality control. 
-
-**Version 2 source code: sc&spRNASeqFunction_v2.R**
-
-Newly added quality control parameters min.cells and sum.w2 significantly improve accuracy of data analysis for (and filtering of) low expression genes. We highly recommend switching to this version and reading the "Quality control considerations" sections mentioned above. 
-
-####################################################
-
-**sc&spRNASeqFunctions_v2.R code description**
-
-This file contains source code for 3 main and 10 auxiliary R functions that implement differential gene expression (DGE) analysis of scRNASeq or spRNASeq data assembled into a Seurat object. All functions must be loaded into the R environment by executing the entire code. The Seurat object must have an active "RNA" assay with a single layer of counts containing all data needed for the analysis (see instructions inside the file).
-
-** KEY FUNCTIONS**
-
-1. **DGE.2samples()** performs analysis of DGE between 2 identities in a Seurat object using weighted averaging and wieghted-t-test/chi-squared-test combination.
-2. **IterWghtTest()** same as DGE.2samples but performs only weighted averaging and weighted t-test (called by DGE.2Samples).
-3. **DGE.Multisample()** performs analysis of DGE between 2 groups of samples (each group must contain at least 3 samples), uses a single integrated Seurat object with at least 6 identities, performs weighted averaging and weighted t-test.
-
-These functions can be used for scRNASeq and spRNASeq data analysis. See instructions inside the file for parameters recommended for different spRNASeq assays.
-
-**AUXILIARY FUNCTIONS**
-
-**Chi2Test()** compares 2 identities based on chi-squared test for aggregated counts, called by DGE.2samples(), yet can be used independently. 
-
-**alt.wttest()** performs weighted t-test using optimized variance estimator (resolves known issues in weights::wtd.t.test() ), called by all 3 key functions, yet can be used independently for weighted t-test in any context.
-
-**alt.wttest2()** same as alt.wttest() but with an additional correction for effective degrees of freedom, reduces the number of degrees of freedom and results in more stringent test when the number of degrees of freedom is small. This is an ad hoc correction proposed in 1950s, which has not been rigorously justified and should be used with caution.
-
-**ICC.AN()** calculates ANOVA intracluster correlation coefficient (ICC), called by all 3 key functions when their icc parameter is set as icc = “A”.
-
-**ICC.iter()** calculates iterative ICC (providing a more accurate match between estimated and expected variances of the data compared to ANOVA ICC), called by all 3 key functions at icc = “i” setting (default setting).
-
-**ICCWeight()** calculates statistical weights of cells, spatial bins, or samples based on ICC values, called by all 3 key functions.
-
-**CntAv()** calculates weighted average of counts for all active identities within a Seurat object (Object), called by DGE.Multisample(), yet can be used independently to save average counts and their variances within the object based on specified ICC. For instance,
-ObjectM <-CntAv(Object, icc =  “i”) will generate ObjectM, which is a copy of the original Object with an additional ObjectM$misc$AV.dat list of dataframes for every active identity i (AV.dat[[i]] ) and a statistics summary (AV.data[[Sstats]]) of all identities. Each AV.dat[[i]] dataframe is a 6-column table containing weighted average counts (1-st column, AV.dat[[i]]$AV), variance of weighted average counts (2-nd column, AV.dat[[i]]$VAR), fraction of cells expressing the gene (3-rd column, AV.dat[[i]]$PCT), average transcript count per cell (4-th column, AV.dat[[i]]$CNT), number of cells expressing the gene (5-th column, AV.dat[[i]]$NCD), and aggregate transcript count in all cells (6-th column, AV.dat[[i]]$AGC) for each gene specified by the features parameter of the function (default is all genes).  AV.data[[Sstats]] reports the number of cells (N.cells), total number of counts (N.counts), and average counts/cell (Counts/cell) for each active identity.
-
-**SampleMatrix()** assembles a matrix of weighted average counts and variances for multisample DGE analysis. It is called by DGE.Multisample() and requires a Seurat object generated by CntAv(). It can be used independently to save the resulting sample matrix as a list of 13 dataframes, e.g., 
-SM<-SampleMatrix(ObjectM, samples.1=c(“i1”,”i2”,”i3”), samples.2=c(“i4”,”i5”,”i6”).
-SM[[1]] and SM[[2]] combine AV.dat[[i]]$AV and AV.dat[[i]]$VAR, respectively, for the identities in samples.1. SM[[3]] and SM[[4]] similarly combine AV.dat[[i]]$AV and AV.dat[[i]]$VAR for the identities in samples.2. SM[[5]] and SM[[6]] combine AV.dat[[i]]$PCT for the identities in samples.1 and samples.2, respectively, SM[[7]] and SM[[8]] combine AV.dat[[i]]$CNT for the identities in samples.1 and samples.2, respectively, SM[[9]] and SM[[10]] combine AV.dat[[i]]$NCD for the identities in samples.1 and samples.2, respectively, SM[[11]] and SM[[12]] combine AV.dat[[i]]$AGC for the identities in samples.1 and samples.2, respectively,. The 13-th dataframe is the same as AV.data[[Sstats]].  
-
-**IterVar(Av,Va)** calculates statistical weights for measurement sets i when the average values Av[i] and variances Va[i] for each set are known based on iterative ICC calculation. It is called by WT.MultiSample() yet can be used independently for any vectors Av and Va that have the same length of at least 3 elements.
-
-**WT.MultiSample()** performs weighted t-test analysis of DGE using SampleMatrix() output, called by DGE.Multisample().
-
-####################################################
-
-**OPTIMIZATION OF MULTI-SAMPLE DGE ANALYSIS**
-
-Multi-sample DGE analysis of very large Seurat objects may be relatively slow, depending on the computer power. To avoid rerunning the analysis multiple times for optimizing analysis parameters, we recommend one of the following 2 approaches:
-
-1.	One-step, unattended analysis:
-Use results=DGE.Multisample(object,samples.1=…,samples.2=… ), where the lists of at least 3 identities in each of the two sample groups must be specified and all other analysis parameters are set at default values. The output dataframe (results$DGE) reports the results for all genes that meet the minimum gene expression requirements regardless of the fold-change and p-value. The output can then be sorted based on desired fold-change and p-value thresholds. Minimum gene expression requirements are defined by the following quality control parameters: **min.pct** - minimum fraction of cells that express the gene within **samples.1 OR samples.2**, default min.pct=0.03; **min.cells** - minimum number of cells with detected gene transcripts required in at least three samples within **samples.1 OR samples.2**, default min.cells=10; **min.count** - minimum aggregate transcript count within **samples.1 OR samples.2**, default min.count=10. Note that min.count value may affect the results only when min.count > 3 X min.cells, e.g., min.count is useful for quality control at default min.cells=10 setting only when the min.count setting larger than 30.  
-
-2.	Three-step, interactive analysis:
-This approach is useful when one or several identities/samples may be affected by poor experiment quality or strong batch effects and may need to be omitted. It is also useful for detailed analysis documentation (preserves not only the final but also intermediate results for count averaging within each identity). 
-**Step 1:** use ObjectM=CntAv(Object, icc = …) with icc= “i”, icc = ”A”, or icc = 0 (“i” setting or slightly faster yet less accurate “A” setting are recommended for scRNASeq and low resolution spRNASeq like Visium, icc = 0 setting is recommended for high-resolution spRNASeq like Visium HD, see the manuscript). This is the slowest analysis step, which may take from several minutes to several hours depending on the number of cells in the object and computer power. 
-**Step 2:** use SM=SampleMatrix(ObjectM, samples.1=…, samples.2=…) and select the desired sample identities into each of the 2 sample groups to be compared.
-**Step 3:** use results=WT.MultiSample(SM, features=…,t.test=…,min.pct=…, fc.thr=…, max.pval=…, df.correction=…) with default or desired values of the analysis parameters. The output dataframe is results$DGE.
-Steps 2 and 3 should not take more than 1-3 min each at reasonable computing power. The selections of identities and analysis parameters may therefore be optimized by repeating these steps without waiting for the slower count averaging within each identity.
-
-####################################################
-
-**IMPORTANT CONSIDERATIONS FOR MULTI-SAMPLE DGE ANALYSIS**
-
-Multi-sample analysis is most reliable and beneficial when evaluating DGE between two sets of independent samples (biological replicates), containing at least 3 samples within each set. Each sample must have a unique Seurat identity. When two or more samples are technical rather than biological replicates, we recommend combining them into one sample by assigning the same Seurat identity to all cells in these replicates. 
-
-The functions described above still work when the sample.1 and sample.2 lists contain repeated identities, as long as each list includes 3 or more identities (even if all identities are the same). It is important to note that repeating identities may be useful for some purposes (e.g., troubleshooting), yet repeated identities may produce nonsense results.
-
-NaN p-values in the output indicate zero degrees of freedom in the weighted t-test, which happens when the variance of the corresponding gene expression in each of the two sample groups is zero (see standard deviations in the results$DGE table).  Common causes are zero counts of the gene in both groups (prevented by setting min.pct > 0 and/or min.count > 0) and duplicated datasets that have different identities in the Seurat object.
-
-####################################################
-
-**IMPORTANT GENERAL CONSIDERATIONS**
-
-It is useful to keep the Seurat object size as small as possible (particularly for multi-sample analysis with >100,000 cells). In our experience, the bottleneck for calculation speed is memory management by R Studio. Large data objects force frequent memory reallocation, dramatically slowing down the calculations. We therefore recommend eliminating all cells not involved in the analysis as well as all unnecessary data/image/information layers from Seurat objects before starting the DGE analysis. There are multiple ways to achieve that in Seurat, including but not limited to reassembling Seurat objects from exported count matrices, subsetting, deleting extra layers, etc., see Seurat documentation. The benchmarking reported in Supplement 1 of the manuscript is based on minimum size Seurat objects required for DGE analysis.
-
-The code provided at this site is designed for conceptual implementation of the statistical methods described in the manuscript. To understand why commonly used methods for DGE analysis in scRNASeq and spRNASeq are based on inaccurate assumptions and therefore produce results that are not statistically valid, please read the manuscript. The code works well enough for us, yet it can be significantly improved and optimized (e.g., by vectorizing some of the functions for much faster performance). Since our focus is biomedical research rather than programming, we intend only to fix code errors (if discovered). However, we are happy to assist anyone interested in creating an optimized package of R or Python functions for public use with no strings attached. In the meantime, please report bugs and suggestions to leikins@mail.nih.gov.
-
-####################################################
-
-**EXAMPLE OF DGE ANALYSIS**
-
-1.	Execute the entire sc&spRNASeqFunctions_v2.R code
-2.	Load the Neuron.QC.rds object by executing Neuron=readRDS("Neuron.QC.rds")
-3.	Execute results=DGE.2samples(Neuron, ident.1="GABA", ident.2="GLUT", fc.thr=1.3, min.pct=0.05, max.pval=0.05, icc="i"). The output dataframe (results) will contain log2 fold-change (log2FC) for identity.1/identity.2, weighted t-test p-value (p-value), counts per cell in each identity (Counts/Cell.1 and Counts/Cell.2), number of cells with detected gene transcripts in each identity (N.+_cells.1 and N.+_cells.2, useful for quality control), aggregate gene counts in each identity (Counts.1 and Counts.2, useful for quality control), sum of the squares of cell weights for the gene (Sum_w^2.1 and Sum_w^2.2, useful for quality control when larger than 0.1), and chi-squared test p-value (Chi2.p.value). The interpretation and usage of quality control output values are discussed in comments at the beginning of the sc&spRNASeqFunctions_v2.R file. The only genes included in the results dataframe will be the ones with more than 1.3 fold-change (30%) change, p<0.05 in the weighted t-test, >30 counts in one of the identities, and >5% cells expressing the gene in one of the identities. To get the results for all genes with >30 counts in one of the two identities, set fc.thr=1 and min.pct=0. Do not reduce the counts threshold below 30 (to avoid nonsense results), yet the threshold may be increased, e.g., to increase it to 50 counts, set min.count=50). **IMPORTANT:** for meaningful false discovery rate (FDR) or family-wise error rate (FWER) calculation based the the p.adjust() function, it is essential to keep the max.pval=1 default setting. However, all other parameter settings can be varied depending on the context of the experiment and statistical questions being addressed. 
-4.	Execute results=DGE.MultiSample(Neuron, samples.1=c("GABA","GLUT","GLUT"), samples.2=c("GABA","GABA","GLUT"), fc.thr=1, min.pct=0.05, max.pval=1, icc="i"). The results will not be biologically meaningful because samples.1 and samples.2 will contain different mixes of the same cells instead of biological replicates (see above). However, they will illustrate how the multiple sample analysis works. The output (results) here will be a list containing 2 dataframes: results$DGE and results$Sstats and a named list: results$parameters. In the results$DGE dataframe: log2FC and p.value are the log2 fold-change and weighted t-test p-value (no chi-squared test performed, see the manuscript); Wtd.%UMI.1 and Wtd.%UMI.2 are weighted averages of normalized counts (% UMI) in samples.1 and samples.2, respectively; Sd.%UMI.1 and Sd.%UMI.2  are standard deviations of these weighted average values; Av.cell.fr.1 and Av.cell.fr.2 are average fractions of the cells expressing the gene in samples.1 and samples.2; N.+_cells.1 and N.+_cells.2 are numbers of cells with detected gene trascripts in each sample within samples.1 and samples.2, respectively (separated by ":"); Counts.1 and Counts.2 are aggregate transcript counts within each sample; Counts/cell.1 and Counts/cell.2 are average transcript counts per cell within samples.1 and samples.2; Sum_w^2.1 and Sum_w^2 are the sums of squares of the weights of the **samples** (not cells) within samples.1 and samples.2. For interpretation and usage of quality countrol output columns (N.+_cells, Counts, Sun_w^2) see comments at the beginning of the sc&spRNASeqFunctions_v2.R file. The results$Sstats dataframe contains cell and count statistics for each unique identity in the Seurat object. The named list results$parameters contains the parameters used during the analysis. 
-
