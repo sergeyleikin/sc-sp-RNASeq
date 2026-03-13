@@ -13,7 +13,7 @@ Updated sc&spRNASeqFunctions_v2b.R to sc&spRNASeqFunctions_v2i.R, to reduce memo
 
 **TUTORIAL: Rigorous statistical analysis requires at least some understanding of the method and its limitations.**
 
-While our method is simple and the QuickGuide should be sufficient to get started, please go through **Tutorial.R** to better understand how to use this method appropriately. The **Tutorial.R** starts from very simple introduction and tips for basic users. It ends with optional sections, comments, and tips for advanced users that have more knowledge in math, physics, and statistics. It has been written by Sergey Leikin, and it is and will be a work in progress. Sergey intends to update it for at least a year or two, whenever he encounters new nontrivial data anlysis issues and based on the feedback from users. Please send your feedback to leikins@mail.nih.gov. 
+While our method is simple and the QuickGuide should be sufficient to get started, please go through **Tutorial.Rmd** to better understand how to use this method appropriately. The **Tutorial.Rmd** starts from very simple introduction and tips for basic users. It ends with optional sections, comments, and tips for advanced users that have more knowledge in math, physics, and statistics. It has been written by Sergey Leikin, and it is and will be a work in progress. Sergey intends to update it for at least a year or two, whenever he encounters new nontrivial data anlysis issues and based on the feedback from users. Please send your feedback to leikins@mail.nih.gov. 
 
 ####################################################
 
@@ -35,7 +35,7 @@ While our method is simple and the QuickGuide should be sufficient to get starte
 
 **VisiumHD_functions_Seurat5.4+.R** - R source code for reading and cropping VisiumHD (10X Genomics) data similar to VisiumHD_functions.R but designed for Seurat v. 5.4.0 and later versions. Not compatible with earlier Seurat versions due to Seurat's change in coordinate system.
 
-**Tutorial.R** - Annotated R code providing a tutorial to differential gene expression analysis based on our method, which describes proper use of the analysis functions provided at this site, limitations of these functions, data and analysis quality control, various workarounds when the data quality is borderline (too few cells or too few counts for highly reliable statistical analysis), and proper approaches to multiple comparison corrections (false discovery rate meaning and calculation). We strongly encourage all users to go through the tutorial before implementing our method, to ensure rigorous statistical analysis.  
+**Tutorial.Rmd** - Annotated R code in R markdown format providing a tutorial to differential gene expression analysis based on our method, which describes proper use of the analysis functions provided at this site, limitations of these functions, data and analysis quality control, various workarounds when the data quality is borderline (too few cells or too few counts for highly reliable statistical analysis), and proper approaches to multiple comparison corrections (false discovery rate meaning and calculation). We strongly encourage all users to go through the tutorial before implementing our method, to ensure rigorous statistical analysis.  
 
 ####################################################
 
