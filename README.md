@@ -21,7 +21,7 @@ While our method is simple and the QuickGuide should be sufficient to get starte
 
 **sc&spRNASeqFunctions_v2i.R**  - R source code for Seurat-compatible differential gene expression (DGE) analysis.
 
-**QuickGuide.Rmd and .html** - quick guide to the DGE analysis functions provided within sc&spRNASeqFunctions_v2i.R (available after 12 pm EDT on 3/13/2026).  
+**QuickGuide.Rmd and .html** - quick guide to the DGE analysis functions provided within sc&spRNASeqFunctions_v2i.R.  
 
 **CodeForScSpRNASeqPaper.R**  - R code used to generate results in the main text of the paper (Figs. 1-6, requires Neuron.QC.rds and E18tib.PCN.rds data files).
 
@@ -42,4 +42,4 @@ While our method is simple and the QuickGuide should be sufficient to get starte
 
 **WARNING: Accurate statistical analysis requires sufficient number of data points.**
 
-Before reporting DGE for a gene, it is important to check the number of transcript counts as well as the number of cells and samples expressing the gene. Some minimum expression requirements are built into our functions, but they can be bypassed when nondefault parameter values are used. Moreover, we cannot foresee everything. There may be cases requiring more stringent minimum expression criteria. Please see "Quality control considerations" sections for DGE.2Samples() and DGE.Multisample() functions at the beginning of the source code to ensure proper use of quality control parameters and more accurate data analysis. Unusual branches of volcano plots may indicate poor sample quality (dead/dying cells, RNA contamination, etc.) or insufficiently stringent quality control of data analysis. Normal volcano plot appearance, however, does not indicate good quality control. 
+Before reporting DGE for a gene, it is important to check the number of transcript counts as well as the number of cells and samples expressing the gene. Some minimum expression requirements are built into our functions, but they can be bypassed when nondefault parameter values are used. Moreover, we cannot foresee everything. There may be cases requiring more stringent minimum expression criteria. Please see the Quick Guide and/or "Quality control considerations" sections for DGE.2Samples() and DGE.Multisample() functions at the beginning of the source code to ensure proper use of quality control parameters and more accurate data analysis. Unusual branches of volcano plots may indicate poor sample quality (dead/dying cells, RNA contamination, etc.) or insufficiently stringent quality control of data analysis. Normal volcano plot appearance, however, does not indicate good quality control. 
