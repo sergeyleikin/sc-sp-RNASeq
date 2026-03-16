@@ -23,7 +23,7 @@ While our method is simple and the QuickGuide should be sufficient to get starte
 
 **QuickGuide.Rmd and .html** - quick guide to the DGE analysis functions provided within sc&spRNASeqFunctions_v2i.R.  
 
-**CodeForScSpRNASeqPaper.R**  - R code used to generate results in the main text of the paper (Figs. 1-6, requires Neuron.QC.rds and E18tib.PCN.rds data files).
+**CodeForScSpRNASeqPaper_v4.R**  - R code used to generate results in the main text of the paper (Figs. 1-6, requires Neuron.QC.rds and E18tib.PCN.rds data files).
 
 **Neuron.QC.rds** – preassembled Seurat object containing scRNASeq data for GABAergic and glutamatergic neurons in E18 mouse brain (data source cited in the CodeForScSpRNASeqPaper.R file).
 
