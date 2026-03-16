@@ -1,0 +1,272 @@
+---
+title: "Quick Guide"
+output: html_document
+date: "2026-03-12"
+---
+
+A quick guide to using R code for differential gene expression (DGE) analysis in scRNASeq and spRNASeq (spatial transcriptomics assays like Visium or VisiumHD). The manuscript has been provisionally accepted for publication in Cell Reports Methods (pending publication of this guide) and should be available shortly. A preprint is available at <https://www.biorxiv.org/cgi/content/short/2025.10.20.683496v3>.
+
+**Requirements:**
+
+1.  R packages: Seurat v5 (v.5.4.0 or later is recommended) and SeuratObject (v.5.3.0 or later recommended)
+
+2.  Files: Neuron.QC.rds and sc_spRNASeqFunctions_v2i.R, download from <https://github.com/sergeyleikin/sc-sp-RNASeq>. The code in this Guide assumes that these files are located in C:/scRNASeq folder (R notations). They can be placed in any folder, provided that C:/scRNASeq in this code is replaced with the folder path.
+
+3.  For DGE analysis, the Seurat object must contain assay "RNA" with a single counts layer. Only this layer (object[["RNA"]]\$counts) is used for the analysis. Neuron.QC.rds object meets this requirement. See section on preparing Seurat objects.
+
+**Definitions:**
+
+1.  Cell is either an individual cell in scRNASeq data or an individual spatial bin in spRNASeq.
+
+2.  Biological replicate is a specimen from an independent animal or patient. Individual cells or groups of cells (specimens) from the same animal/patient are not independent and therefore are not biological replicates within analysis of genotype/treatment effects.
+
+3.  Sample is a group of cells or specimens that is a biological replicate.
+
+4.  Technical replicates are cells or groups of cells within the same sample.
+
+## **Basic data analysis with default parameters**
+
+#### Basic functions (sc_spRNASeqFunctions_v2i.R)
+
+1.  **DGE.2Samples()** - DGE analysis based on technical replicates. Used when \< 3 biological replicates are available or to compare different cell groups (types) within the same sample.
+
+2.  **DGE.MultiSample()** - DGE analysis based on biological replicates. Essential for identifying genotype/treatment effects.
+
+### DGE.2Samples()
+
+The Neuron.QC.rds Seurat object contains 10X Genomics scRNASeq data from glutamatergic neurons (identity "GLUT") and GABAergic neurons (identity "GABA") collected by 10X Genomics and reassembled as described in the Cell Rep. Methods manuscript. After loading Seurat library, functions encoded in sc_spRNASeqFunctions_v2i.R, and Seurat object Neuron.QC.rds
+
+```{r example1.prep, message=FALSE}
+library("Seurat")
+source("C:/scRNASeq/sc_spRNASeqFunctions_v2i.R")
+Neuron.QC=readRDS("C:/scRNASeq/Neuron.QC.rds")
+```
+
+a single line of code
+
+```{r example1.analysis, results='hide'}
+DGE=DGE.2samples(Neuron.QC, ident.1 = "GLUT", ident.2 = "GABA")
+```
+
+calculates dataframe DGE containing differential gene expression output for comparison of cells with "GLUT" and "GABA" identities:
+
+```{r example1.FDRoutput}
+head(DGE)
+```
+
+This dataframe shows, e.g., downregulation of Xkr4 in ident.1 ("GLUT") relative to ident.2 ("GABA") with log2FC=-1.7. The corresponding unadjusted p-value is p.value = 1.2 10^-21^ based on the weighted t-test. Average counts per cell in ident.1 and ident.2 are 0.29 and 0.39, respectively. 319 counts of Xkr4 mRNA were detected in 258 cells within ident.1. 433 counts of Xkr4 mRNA were detected in 278 cells within ident.2. As long as Sum_w\^2 \<\< 1, the weighted averaging and weighted t-test are accurate. For some low expression genes, Sum_w\^2 between 0.3 and 1 is possible. Analysis of such genes requires advanced understanding of the theory and our method. It is described in Tutorial.Rmd available at <https://github.com/sergeyleikin/sc-sp-RNASeq>. Chi squared test p-value for Xkr4 is 1.3 10^-53^. It is a quality control parameter rather than a measure of statistical significance (at Chi2.p.value \> 0.05, DGE measurement may not be reliable; see Cell. Rep. Methods manuscript).
+
+#### Benjamini-Hochberg correction for multiple comparisons (False Discovery Rate, FDR).
+
+The global false discovery rate (FDR) may be calculated as
+
+```{r example1.FDR, results='hide'}
+DGE[["FDR"]]=p.adjust(DGE$p.value, method="BH")
+```
+
+adding the FDR values to the last column of the DGE dataframe
+
+```{r example1.output}
+head(DGE)
+```
+
+**Interpretation of unadjusted p-values and FDR**
+
+**It is important to keep in mind that the probability of nonzero log2FC for a specific gene being a false positive finding is the unadjusted p-value rather than FDR. FDR is the fraction of expected false discoveries among all genes that are included in the analysis and have unadjusted p-values equal or smaller than the gene with the given FDR. The set of genes needed to be included in the analysis and the corresponding FDR may depend on the context of the study, prior knowledge, etc. The FDR calculation above is just an example. Analyzing all genes meeting minimum expression requirements like above may not always be the best approach. FDR calculation for subset(s) of genes (e.g., regulating pathways and/or biological functions relevant to the study) may help avoiding rejection of too many true positive findings based on FDR.**
+
+### Preparing Seurat objects for DGE analysis
+
+To reduce memory usage and speed up analysis, we recommend reassembling Seurat object from count matrices, as illustrated below
+
+```{r example2.prep, message=FALSE}
+GLUT.QC=subset(Neuron.QC, idents = "GLUT")
+GABA.QC=subset(Neuron.QC, idents = "GABA")
+GLUT.cnts=GLUT.QC[["RNA"]]$counts
+glutcells=colnames(GLUT.cnts)
+glutcells.r1=sample(glutcells,350)
+GLUT.r1=CreateSeuratObject(GLUT.cnts[,glutcells.r1])
+Idents(GLUT.r1)="GLUT.1"
+glutcells.r2=sample(setdiff(glutcells,glutcells.r1),350)
+GLUT.r2=CreateSeuratObject(GLUT.cnts[,glutcells.r2])
+Idents(GLUT.r2)="GLUT.2"
+glutcells.r3=setdiff(setdiff(glutcells,glutcells.r1),glutcells.r2)
+GLUT.r3=CreateSeuratObject(GLUT.cnts[,glutcells.r3])
+Idents(GLUT.r3)="GLUT.3"
+GABA.cnts=GABA.QC[["RNA"]]$counts
+GABAcells=colnames(GABA.cnts)
+GABAcells.r1=sample(GABAcells,350)
+GABA.r1=CreateSeuratObject(GABA.cnts[,GABAcells.r1])
+Idents(GABA.r1)="GABA.1"
+GABAcells.r2=sample(setdiff(GABAcells,GABAcells.r1),350)
+GABA.r2=CreateSeuratObject(GABA.cnts[,GABAcells.r2])
+Idents(GABA.r2)="GABA.2"
+GABAcells.r3=setdiff(setdiff(GABAcells,GABAcells.r1),GABAcells.r2)
+GABA.r3=CreateSeuratObject(GABA.cnts[,GABAcells.r3])
+Idents(GABA.r3)="GABA.3"
+NeuronMS.QC=JoinLayers(merge(GLUT.r1, y=c(GLUT.r2,GLUT.r3,GABA.r1,GABA.r2,GABA.r3)))
+```
+
+The code above extracted count matrices of GLUT and GABA neurons, split each identity into 3 groups of cells, reassigned distinct identity to each of the new cell groups and reassembled a Seurat object from the count matrices. The new Seurat object NeuronMS.QC countains the same cells and counts as Neuron.QC, but it has 3 distinct identities for GLUT neurons and 3 distinct identities for GABA neurons. It has a single counts layer (JoinLayers() function). It contains no assays other than "RNA" and no layers other than the counts layer in the "RNA" assay.
+
+Here, we reassembled the object to illustrate how multiple identities can be combined in DGE.2Samples() analysis and to prepare a mock multi-sample Seurat object for DGE.MultiSample() analysis. However, we recommend using the same principle of extracting raw count matrices and reassembling new Seurat objects from them before any type of DGE analysis to remove all extraneous information that just eats the computer memory and slows down processing. Such reassembly will also ensure compatibility of the final Seurat object with the requirements for our DGE analysis functions.
+
+We can now repeat the DGE.2Samples() analysis, illustrating how to combine cells from different identities
+
+```{r example2.analysis, results='hide'}
+DGE=DGE.2samples(NeuronMS.QC, ident.1 = c("GLUT.1","GLUT.2","GLUT.3"), ident.2 = c("GABA.1","GABA.2","GABA.3"))
+```
+
+The results of this analysis are exactly the same as before:
+
+```{r example2.output}
+head(DGE)
+```
+
+### DGE.MultiSample() function
+
+While cells from the same sample should always be grouped together as above, we can pretend that .1, .2, and .3 cells are from different animals and therefore represent biological replicates for multiple sample analysis, which can be performed using DGE.MultiSample() function
+
+```{r example2.output.MS, results='hide'}
+results.MS=DGE.MultiSample(NeuronMS.QC, samples.1 = c("GLUT.1","GLUT.2","GLUT.3"), samples.2 = c("GABA.1","GABA.2","GABA.3"))
+```
+
+The results.MS output of this function is a list containing sample statistics (results.MS\$Sstats)
+
+```{r example2.output.stats}
+print(results.MS$Sstats)
+```
+
+analysis parameters (results.MS\$parameters)
+
+```{r example2.output.param}
+print(results.MS$parameters)
+```
+
+and the differential expression dataframe:
+
+```{r example2.output.DGE}
+head(results.MS$DGE)
+```
+
+This DGE dataframe shows, e.g., downregulation of Xkr4 in samples.1 vs. samples.2 with log2FC=-1.7. The unadjusted p-value for this fold change in weighted t-test is p.value = 0.00026. It is many orders of magnitude larger than calculated by DGE.2Samples() because it is based on the standard error of the mean (SEM) for 3 mock biological replicates rather than much smaller SEM for over 1,000 technical replicates (SEM is inversely proportional to the square root of the number of replicates). The weighted average expression of Xkr4 in samples.1 is Wtd.%UMI.1 = 0.001 %UMI (percentage of total transcript counts per cell). The standard deviation of Wtd.%UMI.1 is Sd.%UMI.1 = 0.0001 %UMI. The average fraction of cells in samples.1 that express Xkr4 is Av.cell.fr.1 = 0.24. 97, 77, and 84 cells expressing this gene were detected in each of the 3 samples, respectively. 121, 94, and 104 counts of this gene were detected in each of the 3 samples, respectively. The average number of counts per cell across all 3 samples is 0.29. At 0.25 \< Sum_w\^2 \< 0.5, we recommend repeating the analysis with the t.test=TRUE setting and report only the results that are qualitatively consistent between the two t.test settings (see 3-step multiple sample analysis). At 0.5 \< Sum_w\^2 \< 1, the p-values are unreliable (see ADVANCED TUTORIAL in Tutorial.Rmd). Columns with .2 extension describe Xkr4 expression in samples.2. The chi squared test is not needed for multiple sample analysis.
+
+The FDR calculation can be performed as described for DGE.2Samples().
+
+**IMPORTANT: In DGE.MultiSample(), a list of identities distinguishes different samples. In DGE.2Samples(), a list of indentities combines different cells within the same sample so that they are analyzed as a single group of cells. Therefore, cell identities may need to be renamed before using DGE.MultiSample(). For instance, if we would want to compare GLUT+GABA neurons in one set of samples with GLUT+GABA neurons in another set of samples, we would need to rename all "GLUT" and all "GABA" cells, e.g., into "GLUT.GABA" cells.**
+
+## **DGE analysis parameters**
+
+### DGE.2Samples(object,...)
+
+**features** (default: features=NULL, analysis of all genes) - list of genes to be analyzed; e.g., features=c("A","B","C") will result in analysis of just genes A, B, and C.
+
+**fc.thr** (default: fc.thr=1) - fold-change threshold filter; e.g., fc.thr=2 will result in analysis of just the genes with abs(log2FC)\>1; **default fc.thr=1 setting must be used for FDR calculation**.
+
+**min.pct** (default: min.pct=0) - expression filter; e.g., at min.pct=0.03 only genes expressed in 3% or more cells within at least one of the two identities are analyzed.
+
+**min.count** (default: min.count=30) - aggregate count filter; minimum aggregate count in at least one of the two identities for the gene to be analyzed.
+
+**min.cells** (default: min.cells=10) - expression filter; minimum number of cells expressing the gene in at least one of the two identities for the gene to be analyzed.
+
+**max.pval** (default: max.pval=1) - output filter; only genes with p-value less than max.pval are reported; **default max.pval=1 setting must be used for FDR calculation**.
+
+**icc** (default: icc="i"; allowed values "i","A",0,1) - method of calculating cell weights; icc="i" - iterative weights; icc="A" - ANOVA-based weights (faster but less accurate calculation); icc=0 - aggregate count weights (used for high-resolution spRNASeq, see Tutorial.Rmd), icc=1 - equal weights (used for analysis of very low expression genes, see Tutorial.Rmd).
+
+**sum.w2** (default: sum.w2=0.4) - the value of Sum_w\^2 above which weighted averaging switches to non-weighted one (see Tutorial.Rmd).
+
+**df.correction** (default, df.correction=FALSE) - method of calculating degrees of freedom in weighted t-test (TRUE setting is not recommended, see ADVANCED TUTORIAL in Tutorial.Rmd).
+
+**WARNING: We optimized default parameter values for general use. Further optimization of parameters other than features affects the analysis power and/or false positive findings. Improper optimization may reduce the analysis quality instead of improving it (see Tutorial.Rmd).**
+
+### DGE.MultiSample(object,...)
+
+**features** - same as in DGE.2Samples().
+
+**t.test** (default: t.test=FALSE): switch between weighted and non-weighted t-tests; At Sum_w\^2 \> 0.25, we recommend analysis with both t.test=FALSE and t.test=TRUE settings (see 3-step multiple sample analysis).
+
+**fc.thr** - same as in DGE.2samples().
+
+**min.pct** (default: min.pct=0.03), otherwise same as in DGE.2samples().
+
+**min.count** (default: min.count=10), otherwise same as in DGE.2samples().
+
+**min.cells** - same as in DGE.2samples().
+
+**max.pval** - same as in DGE.2samples().
+
+**icc** - same as in DGE.2samples().
+
+**sum.w2** - same as in DGE.2samples().
+
+**df.correction** - same as in DGE.2samples().
+
+## **3-step multiple sample analysis**
+
+### CntAv(), SampleMatrix(), and WT.MultiSample()
+
+The **DGE.MultiSample()** function is a wrapper for **CntAv() + SampleMatrix() + WT.Multisample()**. Unless 100% sure that the DGE analysis will not have to be repeated with different parameters, we recommend step-by-step analysis with the 3 latter functions.
+
+#### Step 1: CntAv(object)
+
+This function has only one parameter, icc. For analysis of high-resolution spRNASeq, we recommend setting icc=0. In all other cases, we recommend default setting (icc="i"). **IMPORTANT: Any renaming of identities, if necessary, must be completed before running CntAv()!**
+
+```{r example3.CntAv, results='hide'}
+NeuronMS.CntAv=CntAv(NeuronMS.QC)
+```
+
+The count averaging with CntAv() is fast for \~ 2,000 cells in our example, but it may take up to 0.5-1 hour per million cells depending on the computer's processing power. For the full set of genes, it needs to be performed only once. For very large datasets with millions of cells, it may be worthwhile to run CntAv() overnight. The object NeuronMS.CntAv produced by CntAv() is NeuronMS.QC + AV.data list added to the misc slot. The AV.data list contains the results of count averaging and variance calculations.
+
+#### Step 2: SampleMatrix(object, samples.1=c(...), samples.2=c(...))
+
+The argument (object) must be a Seurat object produced by the CntAv() function, samples.1 and samples.2 are lists of identities for each of the samples. The output is a matrix of averaged counts, their variances, and additional parameters (see Tutorial.Rmd) for samples.1 and samples.2 identities.
+
+```{r example3.SM, results='hide'}
+NeuronMS.SM=SampleMatrix(NeuronMS.CntAv, samples.1 = c("GLUT.1","GLUT.2","GLUT.3"), samples.2 = c("GABA.1","GABA.2","GABA.3"))
+```
+
+The SampleMatrix() function has no optional parameters.
+
+#### Step 3: WT.MultiSample(object, ...)
+
+The object must be a sample matrix generated by the SampleMatrix() function. The optional parameters of this function are the same as for DGE.MultiSample(), except WT.MultiSample() does not have the icc parameter (which is used only at the CntAv() step).
+
+```{r example3.DGE, results='hide'}
+results.MS=WT.MultiSample(NeuronMS.SM)
+```
+
+The output of WT.MultiSample() is the same as the output of the DGE.MultiSample() function
+
+```{r example3.results}
+head(results.MS$DGE)
+```
+
+**The benefit of this 3 step analysis is that SampleMatrix() completes within a blink of an eye and WT.MultiSamples() completes in less than a minute while CntAv() may take from few minutes to several hours depending on the number of cells. Typically, only WT.MultiSample() needs to be repeated for full DGE analysis. For instance, we recommend running WT.MultiSample() with both default t.test=FALSE setting and t.test=TRUE setting. For genes with Sum_w\^2 \< 0.25, the default t.test=FALSE setting produces most accurate results. For genes with 0.25 \< Sum_w\^2 \< 0.5, it is impossible to predict which of the two t.test settings produces more accurate values. Therefore, only the findings that are qualitatively consistent between the two settings are reliable at 0.25 \< Sum_w\^2 \< 0.5. In some cases, it may also be beneficial to rerun WT.MultiSample() with non-default settings of other parameters (see Tutorial.Rmd).**
+
+For example, after rerunning WT.MultiSample for NeuronMS.SM with t.test=TRUE,
+
+```{r example3.DGE2, results='hide'}
+results.MSb=WT.MultiSample(NeuronMS.SM, t.test=TRUE)
+```
+
+we find
+
+```{r example3.results.b}
+head(results.MSb$DGE)
+```
+
+While the p-value for Xkr4 is now about 2-fold higher and the p-value of Rgs20 is about 30% lower than at t.test=FALSE, the log2FC, Wtd.%UMI, and their statistical significance for these two genes (and other genes in the head tables) are consistent. These findings are reliable. We recommend reporting the values from the more conservative (larger p.value) test (t.test=TRUE for Xkr4 and t.test=FALSE for Rgs20). This can be easily automated, e.g., by using
+
+```{r example3.results.final}
+results.MS.DGE=results.MS$DGE
+results.MSb.DGE=results.MSb$DGE
+genes=intersect(rownames(results.MS$DGE),rownames(results.MSb$DGE))
+results.final=results.MS.DGE[genes,]
+for (rownum in seq_along(genes)){
+  if (results.MSb.DGE$p.value[rownum]>results.MS.DGE$p.value[rownum]) {results.final[rownum,]=results.MSb.DGE[rownum,]}
+  if (results.MSb.DGE$log2FC[rownum]==results.MS.DGE$log2FC[rownum]){}
+  else {if(abs(results.MSb.DGE$log2FC[rownum]-results.MS.DGE$log2FC[rownum]) > 0.2) {results.final[rownum,"p.value"]=1}}
+}
+head(results.final)
+```
+
+Here we used the p.value and difference between log2FC as the consistency filters, selecting the test with larger p.value when the difference between log2FC is below the inconsistency threshold and setting p.value=1 when the difference between log2FC is above the inconsistency threshold.
