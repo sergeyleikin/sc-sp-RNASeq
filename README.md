@@ -7,7 +7,8 @@ Gennady Margolin, Andrew Tang and Sergey Leikin, 2025. Differential expression a
 **UPDATES AND NEWS**
 
 **3/13/2026.**
-Updated sc&spRNASeqFunctions_v2b.R to sc&spRNASeqFunctions_v2i.R, to reduce memory utilization and increase the speed of DGE calculations. Added a QuickGuide.rmd for these functions in R markdown format and the corresponting QuickGuide.html. Removed the corresponding information from this ReadMe description. 
+Updated sc&spRNASeqFunctions_v2b.R to sc&spRNASeqFunctions_v2i.R, to reduce memory utilization and increase the speed of DGE calculations. Added a QuickGuide.rmd for these functions in R markdown format and the corresponting QuickGuide.html. Removed the corresponding information from this ReadMe description.
+
 **3/17/2026.**
 Fixed various typos in QuickGuide and Tutorial, there may still be some left though (please don't hesitate to report. The next Tutorial update (ADVANCED TUTOTIAL chapters) is expected within 2-3 weeks. 
 
