@@ -4,7 +4,7 @@ output: html_document
 date: "2026-03-12"
 ---
 
-A quick guide to using R code for differential gene expression (DGE) analysis in scRNASeq and spRNASeq (spatial transcriptomics assays like Visium or VisiumHD). The manuscript has been provisionally accepted for publication in Cell Reports Methods (pending publication of this guide) and should be available shortly. A preprint is available at <https://www.biorxiv.org/cgi/content/short/2025.10.20.683496v3>.
+A quick guide to using R code for differential gene expression (DGE) analysis in scRNASeq and spRNASeq (spatial transcriptomics assays like Visium or VisiumHD). The manuscript has been accepted for publication in Cell Reports Methods. Corrected proof is available online at <https://doi.org/10.1016/j.crmeth.2026.101383>.
 
 **Requirements:**
 
