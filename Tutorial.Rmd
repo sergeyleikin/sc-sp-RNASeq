@@ -11,7 +11,7 @@ editor_options:
 
 #### Tutorial written and maintained by Sergey Leikin, [leikins\@mail.nih.gov](mailto:leikins@mail.nih.gov){.email}
 
-Based on Cell Reports Methods manuscript (early preprint available at <https://www.biorxiv.org/cgi/content/short/2025.10.20.683496v3>) and R functions and files deposited at
+Based on Cell Reports Methods manuscript (Cell Rep Methods, 6, 101383, <https://doi.org/10.1016/j.crmeth.2026.101383>) and R functions and files deposited at
 <https://github.com/sergeyleikin/sc-sp-RNASeq>.
 
 Chapters and sections marked UNDER CONSTRUCTION have not been written yet. Please stay tuned for weekly/monthly updates.
